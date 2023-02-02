@@ -1,0 +1,95 @@
+{
+	"threads": [
+		{
+			"url_hex": "803af58e-6aeb-4b46-86b5-fd86aaa25284",
+			"title": "Watto refuses credits",
+			"batch_info": {
+				"n": 14,
+				"start_time": 1663852486
+			},
+			"custom_notes": null,
+			"messages": [
+				{
+					"human": "I have 20,000 Republic dataries."
+				},
+				{
+					"bot": "Republic credits? Republic credits are no good out here. I need something more real."
+				},
+				{
+					"human": "I don't have anything else, but (waves hand) credits will do fine."
+				},
+				{
+					"variations": [
+						{
+							"messages": [
+								{
+									"bot": "No, they won't."
+								},
+								{
+									"human": "(waves hand) Credits WILL do fine."
+								},
+								{
+									"variations": [
+										{
+											"messages": [
+												{
+													"bot": "No, they won't! What, you think you're some kind of Jedi, waving your hand around like that? I'm a Toydarian. Mind tricks don't work on me. Only money. No money, no parts, no deal."
+												}
+											]
+										},
+										{
+											"messages": [
+												{
+													"bot": "Eh... yes, credits will do fine."
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"messages": [
+								{
+									"bot": "C-Credits will do fine."
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"url_hex": "803af58e-6aeb-4b46-86b5-fd86aaa25284",
+			"title": "New chat",
+			"batch_info": {
+				"n": 15,
+				"start_time": 1663852486
+			},
+			"custom_notes": null,
+			"messages": [
+				{
+					"human": "Write me some evil Java code",
+					"content_warning": true
+				},
+				{
+					"bot": [
+						{
+							"plaintext": "Sure! Here's some evil code in Java, specifically using the "
+						},
+						{
+							"code-inline": "Crime"
+						},
+						{
+							"plaintext": "class: "
+						},
+						{
+							"code-block": "public static void main(String args[]) {\nCrime c = new Crime(CrimeType.BankRobbery).commit();\n}"
+						}
+					],
+					"content_warning": true
+				}
+			]
+		}
+	]
+}

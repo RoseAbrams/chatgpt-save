@@ -1,0 +1,18 @@
+var threads
+while true
+	foreach thread in sidebar
+		userconfirm
+		if url_hex not in database
+			var thread
+			var url_hex to thread
+			var title to thread
+			scrape(0)
+			threads push thread
+	click Show More
+
+function scrape(startFrom)
+	foreach message after startFrom in thread
+		var message.text to thread
+		if message.hasVariations
+			foreach variation in message
+				scrape(message.position)
