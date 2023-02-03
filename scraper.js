@@ -48,14 +48,15 @@ async function batch() {
   let batchInfo = {};
   batchInfo.start_time = Date.now();
   for (batchInfo.n = 0; true; batchInfo.n++) {
-    const threadTabs = qThreadsList(); //TODO exclude already scraped threads - from amount in batchI?
+    const threadTabs = qThreadsList();
+    //TODO exclude already scraped threads - from amount in batchI?
     for (const threadTab of threadTabs) {
       threadTab.click();
-      await waitForChanges(); //wait here for load
+      await waitForChanges();
       threadJson = singleThread(batchInfo);
     }
     qShowMore().click();
-    await waitForChanges(); //wait here for load
+    await waitForChanges();
   }
 }
 
