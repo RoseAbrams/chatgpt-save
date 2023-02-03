@@ -1,12 +1,12 @@
 {
-	"name": "ChatGPT Save",
-	"version": "1",
-	"manifest_version": 2,
-	"permissions": ["tab", "downloads", "storage"],
-	"browser_action": {
-		"default_popup": "popup.html"
-	},
-	"background": {
-		"scripts": ["background.js"]
-	}
+  "name": "ChatGPT Save",
+  "version": "1",
+  "manifest_version": 2,
+  "permissions": ["tabs", "downloads", "storage", "https://chat.openai.com/*"],
+  "browser_action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "scripts": ["background.js"]
+  }
 }
