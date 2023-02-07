@@ -2,7 +2,7 @@
   "name": "ChatGPT Save",
   "version": "1",
   "manifest_version": 2,
-  "permissions": ["tabs", "downloads", "storage", "https://chat.openai.com/*"],
+  "permissions": ["activeTab", "downloads", "storage"],
   "browser_action": {
     "default_popup": "popup.html"
   },

@@ -22,15 +22,17 @@ const qVariationsTotal = (message) =>
   parseInt(qVariationsNav(message).textContent.at(-1));
 const qHasVariations = (message) => qVariationsNav(message);
 const qVariationsButtons = (message) =>
-  qVariationsNav(message).querySelector("button");
+  qVariationsNav(message).querySelectorAll("button");
 // .item(0)     back
 // .item(1)     forward
 const qShowMore = () => document.querySelector("nav div div button");
 
 function waitForChanges() {
+  console.log("waiting...");
   return new Promise((resolve) => {
     new MutationObserver((mutations, observer) => {
       observer.disconnect();
+      console.log("done");
       resolve(mutations);
     }).observe(document.documentElement, {
       subtree: true,
@@ -45,15 +47,23 @@ function waitForChanges() {
 */
 
 async function batch() {
-  let batchInfo = {};
+  console.log("batch start");
+  const batchInfo = {};
   batchInfo.start_time = Date.now();
+  const batchCache = [];
   for (batchInfo.n = 0; true; batchInfo.n++) {
     const threadTabs = qThreadsList();
     //TODO exclude already scraped threads - from amount in batchI?
     for (const threadTab of threadTabs) {
       threadTab.click();
       await waitForChanges();
-      threadJson = singleThread(batchInfo);
+      var currentThreadHex = qURL().split("/")[4];
+      if (!batchCache.some((thread) => thread.url_hex === currentThreadHex)) {
+        var threadJson = singleThread(batchInfo);
+        batchCache.push(threadJson);
+      } else {
+        console.log("thread already scraped: " + currentThreadHex);
+      }
     }
     qShowMore().click();
     await waitForChanges();
@@ -64,7 +74,7 @@ function singleThread(batchInfo) {
   console.log("singleThread start");
   let threadJson = {};
   threadJson.url_hex = qURL().split("/")[4];
-  threadJson.title = qThreadSelected().textContent;
+  threadJson.title = document.title; //qThreadSelected().textContent;
   threadJson.desc = prompt("desc:", "");
   threadJson.custom_notes = null;
   threadJson.batch_info = batchInfo;
@@ -78,12 +88,18 @@ function singleThread(batchInfo) {
   return threadJson;
 }
 
-function stepMessages(messagesJsonArray, startAt) {
+async function stepMessages(messagesJsonArray, startAt) {
   const messagesList = qMessages();
   for (let messageN = startAt; messageN < messagesList.length; messageN++) {
     const message = messagesList.item(messageN);
     if (qHasVariations(message)) {
       let variationsJsonArray = [];
+      while (qVariationsCurrent(message) != qVariationsTotal(message)) {
+        console.log("going to end, " + qVariationsNav(message).textContent);
+        console.log(qVariationsButtons(message).item(1));
+        qVariationsButtons(message).item(1).click();
+        waitFor(10000);
+      }
       for (
         let variationN = qVariationsTotal(message);
         variationN > 0;
@@ -92,6 +108,12 @@ function stepMessages(messagesJsonArray, startAt) {
         let messagesJsonArray2 = [];
         messagesJsonArray2.push(message.textContent);
         qVariationsButtons(message).item(0).click();
+        console.log(
+          "going to beginning, " +
+            qVariationsCurrent(message) +
+            " / " +
+            qVariationsTotal(message)
+        );
         stepMessages(messagesJsonArray2, messageN);
         variationsJsonArray.unshift({ messages: messagesJsonArray2 });
       }
@@ -103,16 +125,19 @@ function stepMessages(messagesJsonArray, startAt) {
       } else {
         messageOwner = "bot";
       }
-      const messageCore = message.querySelector(
+      let messageCore = message.querySelector(
         ".items-start.gap-4.whitespace-pre-wrap"
       ); //qMessageCore(message);
+      if (
+        messageCore.childNodes.length === 1 &&
+        messageCore.childNodes.item(0).nodeName === "DIV"
+      )
+        messageCore = messageCore.childNodes.item(0);
+      console.log(messageCore);
       const hasNonTextSections =
         messageCore.querySelectorAll("pre, table").length !== 0;
       let messageContent = hasNonTextSections ? [] : "";
-      for (let messageSection of messageCore.childNodes) {
-        if (messageSection.nodeName === "DIV") {
-          messageSection = messageSection.childNodes.item(0);
-        }
+      for (const messageSection of messageCore.childNodes) {
         switch (messageSection.nodeName) {
           case "PRE":
             messageContent.push({

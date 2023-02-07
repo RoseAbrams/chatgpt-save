@@ -8,7 +8,7 @@ chrome.storage.onChanged.addListener((event) => {
   chrome.storage.local.get(null, (storage) => {
     chrome.downloads.download({
       url: json_url(storage.thread),
-      filename: "chatgpt_save/" + storage.thread.url_hex + ".json",
+      filename: "chatgpt_save/" + storage.thread.url_hex + " " + storage.thread.title + ".json",
       conflictAction: "overwrite",
       saveAs: false,
     });
