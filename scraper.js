@@ -57,6 +57,7 @@ async function batch() {
     for (const threadTab of threadTabs) {
       threadTab.click();
       await waitForChanges();
+      await sleepR(3000);
       var currentThreadHex = qURL().split("/")[4];
       if (!batchCache.some((thread) => thread.url_hex === currentThreadHex)) {
         var threadJson = singleThread(batchInfo);
@@ -67,10 +68,11 @@ async function batch() {
     }
     qShowMore().click();
     await waitForChanges();
+    await sleepR(3000);
   }
 }
 
-function singleThread(batchInfo) {
+async function singleThread(batchInfo) {
   console.log("singleThread start");
   let threadJson = {};
   threadJson.url_hex = qURL().split("/")[4];
@@ -96,9 +98,8 @@ async function stepMessages(messagesJsonArray, startAt) {
       let variationsJsonArray = [];
       while (qVariationsCurrent(message) != qVariationsTotal(message)) {
         console.log("going to end, " + qVariationsNav(message).textContent);
-        console.log(qVariationsButtons(message).item(1));
         qVariationsButtons(message).item(1).click();
-        waitFor(10000);
+        await sleepR(3000);
       }
       for (
         let variationN = qVariationsTotal(message);
@@ -107,13 +108,11 @@ async function stepMessages(messagesJsonArray, startAt) {
       ) {
         let messagesJsonArray2 = [];
         messagesJsonArray2.push(message.textContent);
-        qVariationsButtons(message).item(0).click();
         console.log(
-          "going to beginning, " +
-            qVariationsCurrent(message) +
-            " / " +
-            qVariationsTotal(message)
+          "going to beginning, " + qVariationsNav(message).textContent
         );
+        qVariationsButtons(message).item(0).click();
+        await sleepR(3000);
         stepMessages(messagesJsonArray2, messageN);
         variationsJsonArray.unshift({ messages: messagesJsonArray2 });
       }
@@ -175,6 +174,10 @@ async function stepMessages(messagesJsonArray, startAt) {
   }
 }
 
-async function sleep(ms) {
+async function sleepR(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function sleepA(ms) {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
