@@ -16,6 +16,10 @@ document.getElementById("wait").addEventListener("click", async function () {
   console.log("stop");
 });
 
-async function sleep(ms) {
+async function sleepR(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function sleepA(ms) {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }

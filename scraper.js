@@ -60,7 +60,7 @@ async function batch() {
       await sleepR(3000);
       var currentThreadHex = qURL().split("/")[4];
       if (!batchCache.some((thread) => thread.url_hex === currentThreadHex)) {
-        var threadJson = singleThread(batchInfo);
+        var threadJson = await singleThread(batchInfo);
         batchCache.push(threadJson);
       } else {
         console.log("thread already scraped: " + currentThreadHex);
@@ -82,7 +82,7 @@ async function singleThread(batchInfo) {
   threadJson.batch_info = batchInfo;
 
   let messagesJsonArray = [];
-  stepMessages(messagesJsonArray, 0);
+  await stepMessages(messagesJsonArray, 0, true);
   threadJson.messages = messagesJsonArray;
 
   console.log(threadJson);
@@ -90,14 +90,19 @@ async function singleThread(batchInfo) {
   return threadJson;
 }
 
-async function stepMessages(messagesJsonArray, startAt) {
+async function stepMessages(messagesJsonArray, startAt, includeVariations) {
   const messagesList = qMessages();
   for (let messageN = startAt; messageN < messagesList.length; messageN++) {
     const message = messagesList.item(messageN);
-    if (qHasVariations(message)) {
+    if (includeVariations && qHasVariations(message)) {
       let variationsJsonArray = [];
       while (qVariationsCurrent(message) != qVariationsTotal(message)) {
-        console.log("going to end, " + qVariationsNav(message).textContent);
+        console.log(
+          "message " +
+            messageN +
+            " going to end, " +
+            qVariationsNav(message).textContent
+        );
         qVariationsButtons(message).item(1).click();
         await sleepR(3000);
       }
@@ -109,14 +114,17 @@ async function stepMessages(messagesJsonArray, startAt) {
         let messagesJsonArray2 = [];
         messagesJsonArray2.push(message.textContent);
         console.log(
-          "going to beginning, " + qVariationsNav(message).textContent
+          "message " +
+            messageN +
+            " going to beginning, " +
+            qVariationsNav(message).textContent
         );
         qVariationsButtons(message).item(0).click();
         await sleepR(3000);
-        stepMessages(messagesJsonArray2, messageN);
+        await stepMessages(messagesJsonArray2, messageN, true);
         variationsJsonArray.unshift({ messages: messagesJsonArray2 });
       }
-      messagesJsonArray.push({ variations: variationsJsonArray });
+      messagesJsonArray.push({ "variations": variationsJsonArray });
     } else {
       let messageOwner;
       if (messageN % 2 == 0) {
@@ -137,15 +145,15 @@ async function stepMessages(messagesJsonArray, startAt) {
         messageCore.querySelectorAll("pre, table").length !== 0;
       let messageContent = hasNonTextSections ? [] : "";
       for (const messageSection of messageCore.childNodes) {
-        switch (messageSection.nodeName) {
+        switch (messageSection.nodeName.toUpperCase()) {
           case "PRE":
             messageContent.push({
               "code-block": messageSection.querySelector("code").textContent,
             });
             break;
-          case "#text":
+          case "#TEXT":
             if (hasNonTextSections) {
-              messageContent.push({ plaintext: messageSection.textContent });
+              messageContent.push({ "plaintext": messageSection.textContent });
             } else {
               messageContent += messageSection.textContent + "\n";
             }
@@ -154,13 +162,15 @@ async function stepMessages(messagesJsonArray, startAt) {
           case "OL":
           case "UL":
             if (hasNonTextSections) {
-              messageContent.push({ plaintext: messageSection.innerHTML });
+              messageContent.push({ "plaintext": messageSection.innerHTML });
             } else {
               messageContent += messageSection.innerHTML + "\n";
             }
             break;
-          case "table":
-            messageContent.push({ table: messageSection.innerHTML });
+          case "TABLE":
+            messageContent.push({ "table": messageSection.innerHTML });
+            break;
+          //TODO ignore content warnings
           default:
             console.error("Unrecognized message section encountered: ");
             console.log(messageSection);

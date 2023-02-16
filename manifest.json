@@ -2,7 +2,7 @@
   "name": "ChatGPT Save",
   "version": "1",
   "manifest_version": 2,
-  "permissions": ["activeTab", "downloads", "storage"],
+  "permissions": ["activeTab", "downloads", "storage", "tabs"],
   "browser_action": {
     "default_popup": "popup.html"
   },
