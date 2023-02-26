@@ -91,8 +91,11 @@ async function singleThread(batchInfo) {
 }
 
 async function stepMessages(messagesJsonArray, startAt, includeVariations) {
+  console.log("stepMessages start");
+  console.log("\trecursion at " + startAt);
   const messagesList = qMessages();
   for (let messageN = startAt; messageN < messagesList.length; messageN++) {
+    console.log("now message " + messageN);
     const message = messagesList.item(messageN);
     if (includeVariations && qHasVariations(message)) {
       let variationsJsonArray = [];
@@ -100,7 +103,7 @@ async function stepMessages(messagesJsonArray, startAt, includeVariations) {
         console.log(
           "message " +
             messageN +
-            " going to end, " +
+            " going to last, " +
             qVariationsNav(message).textContent
         );
         qVariationsButtons(message).item(1).click();
@@ -112,76 +115,82 @@ async function stepMessages(messagesJsonArray, startAt, includeVariations) {
         variationN--
       ) {
         let messagesJsonArray2 = [];
-        messagesJsonArray2.push(message.textContent);
+        const messageJson2 = messageToString(message, messageN);
+        messagesJsonArray2.push(messageJson2);
         console.log(
           "message " +
             messageN +
-            " going to beginning, " +
+            " going to first, " +
             qVariationsNav(message).textContent
         );
         qVariationsButtons(message).item(0).click();
         await sleepR(3000);
-        await stepMessages(messagesJsonArray2, messageN, true);
+        await stepMessages(messagesJsonArray2, messageN + 1, true);
         variationsJsonArray.unshift({ messages: messagesJsonArray2 });
       }
-      messagesJsonArray.push({ "variations": variationsJsonArray });
+      messagesJsonArray.push({ variations: variationsJsonArray });
     } else {
-      let messageOwner;
-      if (messageN % 2 == 0) {
-        messageOwner = "human";
-      } else {
-        messageOwner = "bot";
-      }
-      let messageCore = message.querySelector(
-        ".items-start.gap-4.whitespace-pre-wrap"
-      ); //qMessageCore(message);
-      if (
-        messageCore.childNodes.length === 1 &&
-        messageCore.childNodes.item(0).nodeName === "DIV"
-      )
-        messageCore = messageCore.childNodes.item(0);
-      console.log(messageCore);
-      const hasNonTextSections =
-        messageCore.querySelectorAll("pre, table").length !== 0;
-      let messageContent = hasNonTextSections ? [] : "";
-      for (const messageSection of messageCore.childNodes) {
-        switch (messageSection.nodeName.toUpperCase()) {
-          case "PRE":
-            messageContent.push({
-              "code-block": messageSection.querySelector("code").textContent,
-            });
-            break;
-          case "#TEXT":
-            if (hasNonTextSections) {
-              messageContent.push({ "plaintext": messageSection.textContent });
-            } else {
-              messageContent += messageSection.textContent + "\n";
-            }
-            break;
-          case "P":
-          case "OL":
-          case "UL":
-            if (hasNonTextSections) {
-              messageContent.push({ "plaintext": messageSection.innerHTML });
-            } else {
-              messageContent += messageSection.innerHTML + "\n";
-            }
-            break;
-          case "TABLE":
-            messageContent.push({ "table": messageSection.innerHTML });
-            break;
-          //TODO ignore content warnings
-          default:
-            console.error("Unrecognized message section encountered: ");
-            console.log(messageSection);
-            console.log(messageSection.nodeName);
-            alert("Unrecognized message section encountered!");
-            break;
-        }
-      }
-      messagesJsonArray.push({ [messageOwner]: messageContent });
+      const messageJson = messageToString(message, messageN);
+      messagesJsonArray.push(messageJson);
     }
   }
+}
+
+function messageToString(message, messageN) {
+  let messageCore = message.querySelector(
+    ".items-start.gap-4.whitespace-pre-wrap"
+  ); //qMessageCore(message);
+  if (
+    messageCore.childNodes.length === 1 &&
+    messageCore.childNodes.item(0).nodeName === "DIV"
+  )
+    messageCore = messageCore.childNodes.item(0);
+  console.log(messageCore);
+  const hasNonTextSections =
+    messageCore.querySelectorAll("pre, table").length !== 0;
+  let messageContent = hasNonTextSections ? [] : "";
+  for (const messageSection of messageCore.childNodes) {
+    switch (messageSection.nodeName.toUpperCase()) {
+      case "PRE":
+        messageContent.push({
+          "code-block": messageSection.querySelector("code").textContent,
+        });
+        break;
+      case "#TEXT":
+        if (hasNonTextSections) {
+          messageContent.push({ plaintext: messageSection.textContent });
+        } else {
+          messageContent += messageSection.textContent + "\n";
+        }
+        break;
+      case "P":
+      case "OL":
+      case "UL":
+        if (hasNonTextSections) {
+          messageContent.push({ plaintext: messageSection.innerHTML });
+        } else {
+          messageContent += messageSection.innerHTML + "\n";
+        }
+        break;
+      case "TABLE":
+        messageContent.push({ table: messageSection.innerHTML });
+        break;
+      //TODO ignore content warnings
+      default:
+        console.error("Unrecognized message section encountered: ");
+        console.log(messageSection);
+        console.log(messageSection.nodeName);
+        alert("Unrecognized message section encountered!");
+        break;
+    }
+  }
+  let messageOwner;
+  if (messageN % 2 == 0) {
+    messageOwner = "human";
+  } else {
+    messageOwner = "bot";
+  }
+  return { [messageOwner]: messageContent };
 }
 
 async function sleepR(ms) {
