@@ -77,7 +77,7 @@ async function singleThread(batchInfo) {
   let threadJson = {};
   threadJson.url_hex = qURL().split("/")[4];
   threadJson.title = document.title; //qThreadSelected().textContent;
-  threadJson.desc = prompt("desc:", "");
+  //threadJson.desc = prompt("desc:", "");
   threadJson.custom_notes = null;
   threadJson.batch_info = batchInfo;
 
@@ -91,12 +91,10 @@ async function singleThread(batchInfo) {
 }
 
 async function stepMessages(messagesJsonArray, startAt, includeVariations) {
-  console.log("stepMessages start");
-  console.log("\trecursion at " + startAt);
-  const messagesList = qMessages();
-  for (let messageN = startAt; messageN < messagesList.length; messageN++) {
-    console.log("now message " + messageN);
-    const message = messagesList.item(messageN);
+  console.log("stepMessages start at recursion " + startAt);
+  for (let messageN = startAt; messageN < qMessages().length; messageN++) {
+    console.log("now message " + messageN + " out of " + qMessages().length);
+    const message = qMessages().item(messageN);
     if (includeVariations && qHasVariations(message)) {
       let variationsJsonArray = [];
       while (qVariationsCurrent(message) != qVariationsTotal(message)) {
@@ -107,7 +105,7 @@ async function stepMessages(messagesJsonArray, startAt, includeVariations) {
             qVariationsNav(message).textContent
         );
         qVariationsButtons(message).item(1).click();
-        await sleepR(3000);
+        await sleepR(1000);
       }
       for (
         let variationN = qVariationsTotal(message);
@@ -124,7 +122,7 @@ async function stepMessages(messagesJsonArray, startAt, includeVariations) {
             qVariationsNav(message).textContent
         );
         qVariationsButtons(message).item(0).click();
-        await sleepR(3000);
+        await sleepR(1000);
         await stepMessages(messagesJsonArray2, messageN + 1, true);
         variationsJsonArray.unshift({ messages: messagesJsonArray2 });
       }
